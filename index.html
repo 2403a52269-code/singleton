@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Examination System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px #cccccc;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1d4ed8;
+        }
+
+        h3 {
+            color: #334155;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 11px;
+            margin: 7px 0;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        input {
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .exam {
+            background: #eff6ff;
+            padding: 15px;
+            margin-top: 12px;
+            border-left: 5px solid #2563eb;
+            border-radius: 5px;
+        }
+
+        .status {
+            text-align: center;
+            color: green;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Online Examination System</h1>
+
+    <p class="status" id="status"></p>
+
+    <h3>Schedule an Examination</h3>
+
+    <form id="examForm">
+        <input type="text" id="examName"
+               placeholder="Examination Name" required>
+
+        <input type="text" id="subject"
+               placeholder="Subject Name" required>
+
+        <input type="date" id="examDate" required>
+
+        <input type="time" id="examTime" required>
+
+        <input type="number" id="duration"
+               placeholder="Duration (minutes)"
+               min="1" required>
+
+        <button type="submit">Add Examination</button>
+    </form>
+
+    <h3>Scheduled Examinations</h3>
+
+    <div id="examList"></div>
+
+    <button onclick="showManagerInfo()">
+        Check Singleton Instance
+    </button>
+
+    <p id="singletonInfo"></p>
+</div>
+
+<script>
+    // Singleton Design Pattern
+    class ExamManager {
+
+        constructor() {
+            if (ExamManager.instance) {
+                return ExamManager.instance;
+            }
+
+            this.exams = [];
+            ExamManager.instance = this;
+        }
+
+        static getInstance() {
+            if (!ExamManager.instance) {
+                new ExamManager();
+            }
+
+            return ExamManager.instance;
+        }
+
+        // Add examination details
+        addExam(name, subject, date, time, duration) {
+            const exam = {
+                id: Date.now(),
+                name: name,
+                subject: subject,
+                date: date,
+                time: time,
+                duration: duration
+            };
+
+            this.exams.push(exam);
+            this.displayExams();
+        }
+
+        // Display all examinations
+        displayExams() {
+            const examList = document.getElementById("examList");
+
+            examList.innerHTML = "";
+
+            if (this.exams.length === 0) {
+                examList.innerHTML =
+                    "<p>No examinations scheduled yet.</p>";
+                return;
+            }
+
+            this.exams.forEach(exam => {
+                const div = document.createElement("div");
+                div.className = "exam";
+
+                const title = document.createElement("h3");
+                title.textContent = exam.name;
+
+                const details = document.createElement("p");
+                details.textContent =
+                    "Subject: " + exam.subject +
+                    " | Date: " + exam.date +
+                    " | Time: " + exam.time +
+                    " | Duration: " + exam.duration + " minutes";
+
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "delete-btn";
+                deleteButton.textContent = "Delete Examination";
+
+                deleteButton.addEventListener("click", () => {
+                    this.deleteExam(exam.id);
+                });
+
+                div.append(title, details, deleteButton);
+                examList.appendChild(div);
+            });
+        }
+
+        // Delete an examination
+        deleteExam(id) {
+            this.exams = this.exams.filter(
+                exam => exam.id !== id
+            );
+
+            this.displayExams();
+        }
+    }
+
+    // Get the single ExamManager object
+    const manager = ExamManager.getInstance();
+
+    document.getElementById("status").textContent =
+        "ExamManager initialized successfully!";
+
+    // Handle form submission
+    document.getElementById("examForm")
+        .addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+            const name = document.getElementById("examName").value;
+            const subject = document.getElementById("subject").value;
+            const date = document.getElementById("examDate").value;
+            const time = document.getElementById("examTime").value;
+            const duration = document.getElementById("duration").value;
+
+            manager.addExam(name, subject, date, time, duration);
+
+            this.reset();
+        });
+
+    // Verify the Singleton Pattern
+    function showManagerInfo() {
+        const anotherManager = ExamManager.getInstance();
+
+        const result = manager === anotherManager;
+
+        document.getElementById("singletonInfo").textContent =
+            result
+                ? "Verified: Both references point to the same ExamManager object!"
+                : "Different objects exist.";
+    }
+
+    // Display initial empty list
+    manager.displayExams();
+</script>
+
+</body>
+</html>
